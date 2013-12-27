@@ -115,9 +115,8 @@ push)
 	;;
 
 	file)
-
-		curl -s "$API_URL/pushes" -u $API_KEY: -F device_id=$dev_id -F type=file -F file="@$4" -X POST #| sed -n '2p' | cut -d'"' -f2
-
+		file_result=$(dopush F $dev_id file file "@$4")
+		echo "$file_result"
 	;;
 
 	link)
