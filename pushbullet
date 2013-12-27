@@ -46,6 +46,36 @@ EOF
 exit
 fi
 
+dopush() {
+	device_id="$1"
+	shift
+	push_type="$1"
+	shift
+	args=()
+	while [ "$1" ]
+	do
+		arg_name="$1"
+		shift
+		arg_value="$1"
+		shift
+		
+		args+=(-d "$arg_name"="$arg_value")
+	done
+	curl_result=$( curl -qSfsw '\n%{http_code}' "$API_URL/pushes" -u $API_KEY: -X POST -d device_id=$device_id -d type=$push_type "${args[@]}" ) 2>/dev/null
+	curl_result_code=$(echo "$curl_result" | tail -n1)
+	curl_result_body=$(echo "$curl_result" | head -n-1)
+	case "$curl_result_code" in
+		"200")
+			push_id=$(echo "$curl_result_body" | json id)
+			echo "OK $push_id"
+			;;
+		*)
+			echo "Failed:"
+			echo "$curl_result_body"
+			;;
+	esac
+}
+
 case $1 in
 list)
 	echo "Available devices:"
@@ -59,9 +89,8 @@ push)
 
 	case $3 in
 	note)
-
-		curl -s "$API_URL/pushes" -u $API_KEY: -d device_id=$dev_id -d type=note -d title="$4" -d body="$5" | sed -n '2p' | cut -d'"' -f2
-
+		note_result=$(dopush $dev_id note title "$4" body "$5")
+		echo "$note_result"
 	;;
 
 	address)
@@ -91,9 +120,8 @@ push)
 	;;
 
 	link)
-
-		curl -s "$API_URL/pushes" -u $API_KEY: -d device_id=$dev_id -d type=link -d title="$4" -d url="$5" | sed -n '2p' | cut -d'"' -f2
-
+		link_result=$(dopush $dev_id link title "$4" url "$5")
+		echo "$link_result"
 	;;
 	esac
 
