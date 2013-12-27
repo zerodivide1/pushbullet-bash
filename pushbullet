@@ -97,8 +97,8 @@ push)
 	;;
 
 	address)
-
-		curl -s "$API_URL/pushes" -u $API_KEY: -d device_id=$dev_id -d type=address -d name="$4" -d address="$5" | sed -n '2p' | cut -d'"' -f2
+		address_result=$(dopush $dev_id address name "$4" address "$5")
+		echo "$note_result"
 
 	;;
 
