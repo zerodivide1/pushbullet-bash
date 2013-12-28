@@ -49,6 +49,10 @@ printUsage
 exit
 fi
 
+getdevices() {
+	curl -s "$API_URL/devices" -u $API_KEY: | json devices
+}
+
 dopush() {
 	curl_flag="$1"
 	shift
@@ -85,12 +89,10 @@ case $1 in
 list)
 	echo "Available devices:"
 	echo "------------------"
-	curl -s "$API_URL/devices" -u $API_KEY: | json devices | json -a extras.model
+	getdevices | json -a extras.model
 	;;
 push)
-
-	devices=$(curl -s "$API_URL/devices" -u $API_KEY: | json devices)
-	dev_id=$(echo "$devices" | json -c "this.extras.model=='$2'" | json 0 | json id)
+	dev_id=$(getdevices | json -c "this.extras.model=='$2'" | json 0 | json id)
 
 	case $3 in
 	note)
