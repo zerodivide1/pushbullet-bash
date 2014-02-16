@@ -15,4 +15,4 @@ CONFIG=/path/to/pushbulletconfig bash -c pushbullet...
 Requirements
 ------------
  * curl
- * jsontool (https://github.com/trentm/json)
+ * jq (http://stedolan.github.io/jq/)

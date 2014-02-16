@@ -1,7 +1,5 @@
-#! /bin/bash
-
+#!/bin/bash
 # Bash interface to the PushBullet api.
-
 # Original Author: Red5d - https://github.com/Red5d
 # Author: Sean Payne - https://github.com/zerodivide1
 
@@ -50,7 +48,7 @@ exit
 fi
 
 getdevices() {
-	curl -s "$API_URL/devices" -u $API_KEY: | json devices
+	curl -s "$API_URL/devices" -u $API_KEY: | jq ".devices"
 }
 
 dopush() {
@@ -75,7 +73,7 @@ dopush() {
 	curl_result_body=$(echo "$curl_result" | head -n-1)
 	case "$curl_result_code" in
 		"200")
-			push_id=$(echo "$curl_result_body" | json id)
+			push_id=$(echo "$curl_result_body" | jq ".id")
 			echo "OK $push_id"
 			;;
 		*)
@@ -89,10 +87,10 @@ case $1 in
 list)
 	echo "Available devices:"
 	echo "------------------"
-	getdevices | json -a extras.model
+	getdevices | jq -r '.[].extras.model'
 	;;
 push)
-	dev_id=$(getdevices | json -c "this.extras.model=='$2'" | json 0 | json id)
+	dev_id=$(getdevices | jq ".[] | select(.extras.model==\"$2\")" | jq -r ".id")
 
 	case $3 in
 	note)
