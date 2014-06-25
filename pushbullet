@@ -110,7 +110,7 @@ push)
 
 	address)
 		address_result=$(dopush d "$dev_id" address name "$4" address "$5")
-		echo "$note_result"
+		echo "$address_result"
 	;;
 
 	list)
