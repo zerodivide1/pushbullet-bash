@@ -90,8 +90,8 @@ dopush() {
 
 case $1 in
 list)
-	echo "Available devices:"
-	echo "------------------"
+	echo "Available devices (use empty string in quotes to push to all devices):"
+	echo "----------------------------------------------------------------------"
 	getdevices | jq -r '.[].extras.model'
 	;;
 push)
