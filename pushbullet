@@ -68,7 +68,12 @@ dopush() {
 		
 		args+=(-$curl_flag "$arg_name"="$arg_value")
 	done
-	curl_result=$( curl -qSfsw '\n%{http_code}' "$API_URL/pushes" -u $API_KEY: -X POST -$curl_flag device_id=$device_id -$curl_flag type=$push_type "${args[@]}" ) 2>/dev/null
+	if [ -z "$device_id" ]
+	then
+		curl_result=$( curl -qSfsw '\n%{http_code}' "$API_URL/pushes" -u $API_KEY: -X POST -$curl_flag type=$push_type "${args[@]}" ) 2>/dev/null
+	else
+		curl_result=$( curl -qSfsw '\n%{http_code}' "$API_URL/pushes" -u $API_KEY: -X POST -$curl_flag device_id=$device_id -$curl_flag type=$push_type "${args[@]}" ) 2>/dev/null
+	fi
 	curl_result_code=$(echo "$curl_result" | tail -n1)
 	curl_result_body=$(echo "$curl_result" | head -n-1)
 	case "$curl_result_code" in
@@ -90,16 +95,21 @@ list)
 	getdevices | jq -r '.[].extras.model'
 	;;
 push)
-	dev_id=$(getdevices | jq ".[] | select(.extras.model==\"$2\")" | jq -r ".id")
+	if [ -z "$2" ]
+	then
+		dev_id=""
+	else
+		dev_id=$(getdevices | jq ".[] | select(.extras.model==\"$2\")" | jq -r ".id")
+	fi
 
 	case $3 in
 	note)
-		note_result=$(dopush d $dev_id note title "$4" body "$5")
+		note_result=$(dopush d "$dev_id" note title "$4" body "$5")
 		echo "$note_result"
 	;;
 
 	address)
-		address_result=$(dopush d $dev_id address name "$4" address "$5")
+		address_result=$(dopush d "$dev_id" address name "$4" address "$5")
 		echo "$note_result"
 	;;
 
@@ -110,17 +120,17 @@ push)
 		do
 			list_args+=(items "$i")
 		done
-		list_result=$(dopush d $dev_id list title "$4" "${list_args[@]}")
+		list_result=$(dopush d "$dev_id" list title "$4" "${list_args[@]}")
 		echo "$list_result"
 	;;
 
 	file)
-		file_result=$(dopush F $dev_id file file "@$4")
+		file_result=$(dopush F "$dev_id" file file "@$4")
 		echo "$file_result"
 	;;
 
 	link)
-		link_result=$(dopush d $dev_id link title "$4" url "$5")
+		link_result=$(dopush d "$dev_id" link title "$4" url "$5")
 		echo "$link_result"
 	;;
 	esac
