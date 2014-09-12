@@ -17,7 +17,8 @@ echo "Usage: pushbullet <action> <device> <type> <data>
 
 Actions: 
 list - Lists all devices in your PushBullet account. (does not require additional parameters)
-push - Pushes data to a device. (the device name can simply be a unique part of the name that "list" returns)
+recent - Retrieves recent pushes (optional type as argument; returns newest since last zero-arg invocation)
+push - Pushes data to a device. (the device name can simply be a unique part of the name that \"list\" returns)
 
 Types: 
 note
