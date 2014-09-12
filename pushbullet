@@ -137,6 +137,28 @@ push)
 
 ;;
 
+get)
+	if [[ -z "$2" ]]
+	then
+		printUsage
+		exit
+	fi
+
+	curl_result=$( curl -qSfsw '\n%{http_code}' "$API_URL/pushes?modified_after=0" -u $API_KEY: ) 2>/dev/null
+	curl_result_code=$(echo "$curl_result" | tail -n1)
+	curl_result_body=$(echo "$curl_result" | head -n-1)
+	case "$curl_result_code" in
+		"200")
+			push=$(echo "$curl_result_body" | jq ".pushes | map(select(.iden==\"$2\"))")
+			echo "$push"
+		;;
+		*)
+			echo "Failed:"
+			echo "$curl_result_body"
+		;;
+	esac
+;;
+
 *)
   printUsage
 ;;
