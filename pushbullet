@@ -17,7 +17,8 @@ echo "Usage: pushbullet <action> <device> <type> <data>
 
 Actions: 
 list - Lists all devices in your PushBullet account. (does not require additional parameters)
-push - Pushes data to a device. (the device name can simply be a unique part of the name that "list" returns)
+recent - Retrieves recent pushes (optional type as argument; returns newest since last zero-arg invocation)
+push - Pushes data to a device. (the device name can simply be a unique part of the name that \"list\" returns)
 get - Retrieve a specific push (requires the iden of the push as parameter)
 
 Types: 
@@ -135,6 +136,58 @@ push)
 		echo "$link_result"
 	;;
 	esac
+
+;;
+
+recent)
+	if [[ -z "$LASTMODIFIED" ]]
+	then
+		LASTMODIFIED=0
+	fi
+
+	curl_result=$( curl -qSfsw '\n%{http_code}' "$API_URL/pushes?modified_after=$LASTMODIFIED" -u $API_KEY: ) 2>/dev/null
+	curl_result_code=$(echo "$curl_result" | tail -n1)
+	curl_result_body=$(echo "$curl_result" | head -n-1)
+	case "$curl_result_code" in
+		"200")
+			LASTMODIFIEDTEMP=$(echo "$curl_result_body" | jq -r '.pushes[].modified' | sort -r | head -1)
+			case "$2" in
+				"note")
+					pushes=$(echo "$curl_result_body" | jq ".pushes | map(select(.type==\"note\")) | [.[] | {iden,title,body}]")
+					;;
+				"link")
+					pushes=$(echo "$curl_result_body" | jq ".pushes | map(select(.type==\"link\")) | [.[] | {iden,title,body,url}]")
+					;;
+				"list")
+					pushes=$(echo "$curl_result_body" | jq ".pushes | map(select(.type==\"list\")) | [.[] | {iden,title,items}]")
+					;;
+				"address")
+					pushes=$(echo "$curl_result_body" | jq ".pushes | map(select(.type==\"address\")) | [.[] | {iden,name,address}]")
+					;;
+				"file")
+					pushes=$(echo "$curl_result_body" | jq ".pushes | map(select(.type==\"file\")) | [.[] | {iden,file_name,file_type,file_url,body}]")
+					;;
+				*)
+					pushes=$(echo "$curl_result_body" | jq ".pushes | map(select(.type==\"note\" or .type==\"link\" or .type==\"list\" or .type==\"address\" or .type==\"file\")) | [.[] | {iden,type,title,name,file_name}]")
+if [[ -z "$LASTMODIFIEDTEMP" ]]
+then
+echo "API_KEY=$API_KEY
+LASTMODIFIED=$LASTMODIFIED" > $CONFIG
+else
+echo "API_KEY=$API_KEY
+LASTMODIFIED=$LASTMODIFIEDTEMP" > $CONFIG
+fi
+					;;
+			esac
+			echo "$pushes"
+
+			;;
+		*)
+			echo "Failed:"
+			echo "$curl_result_body"
+			;;
+	esac
+
 
 ;;
 
