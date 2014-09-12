@@ -72,13 +72,13 @@ dopush() {
 	then
 		curl_result=$( curl -qSfsw '\n%{http_code}' "$API_URL/pushes" -u $API_KEY: -X POST -$curl_flag type=$push_type "${args[@]}" ) 2>/dev/null
 	else
-		curl_result=$( curl -qSfsw '\n%{http_code}' "$API_URL/pushes" -u $API_KEY: -X POST -$curl_flag device_id=$device_id -$curl_flag type=$push_type "${args[@]}" ) 2>/dev/null
+		curl_result=$( curl -qSfsw '\n%{http_code}' "$API_URL/pushes" -u $API_KEY: -X POST -$curl_flag device_iden=$device_id -$curl_flag type=$push_type "${args[@]}" ) 2>/dev/null
 	fi
 	curl_result_code=$(echo "$curl_result" | tail -n1)
 	curl_result_body=$(echo "$curl_result" | head -n-1)
 	case "$curl_result_code" in
 		"200")
-			push_id=$(echo "$curl_result_body" | jq ".id")
+			push_id=$(echo "$curl_result_body" | jq -r ".iden")
 			echo "OK $push_id"
 			;;
 		*)
@@ -92,14 +92,14 @@ case $1 in
 list)
 	echo "Available devices (use empty string in quotes to push to all devices):"
 	echo "----------------------------------------------------------------------"
-	getdevices | jq -r '.[].extras.model'
+	getdevices | jq -r '.[].nickname'
 	;;
 push)
 	if [ -z "$2" ]
 	then
 		dev_id=""
 	else
-		dev_id=$(getdevices | jq ".[] | select(.extras.model==\"$2\")" | jq -r ".id")
+		dev_id=$(getdevices | jq ".[] | select(.nickname==\"$2\")" | jq -r ".iden")
 	fi
 
 	case $3 in
