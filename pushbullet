@@ -18,6 +18,7 @@ echo "Usage: pushbullet <action> <device> <type> <data>
 Actions: 
 list - Lists all devices in your PushBullet account. (does not require additional parameters)
 push - Pushes data to a device. (the device name can simply be a unique part of the name that "list" returns)
+get - Retrieve a specific push (requires the iden of the push as parameter)
 
 Types: 
 note
