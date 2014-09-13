@@ -16,3 +16,4 @@ Requirements
 ------------
  * curl
  * jq (http://stedolan.github.io/jq/)
+ * wssh (https://github.com/progrium/wssh) (_optional_)

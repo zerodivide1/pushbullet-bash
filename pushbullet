@@ -12,6 +12,11 @@ API_URL=https://api.pushbullet.com/v2
 
 source $CONFIG
 
+die() {
+	echo $1
+	exit 1
+}
+
 printUsage() {
 echo "Usage: pushbullet <action> <device> <type> <data>
 
@@ -20,6 +25,7 @@ list - Lists all devices in your PushBullet account. (does not require additiona
 recent - Retrieves recent pushes (optional type as argument; returns newest since last zero-arg invocation)
 push - Pushes data to a device. (the device name can simply be a unique part of the name that \"list\" returns)
 get - Retrieve a specific push (requires the iden of the push as parameter)
+stream - Stream and execute given command for each new push
 
 Types: 
 note
@@ -35,6 +41,13 @@ Type Parameters:
 \"list\" type: 	give the name of the list, then each of the list items, separated by spaces.
 \"file\" type: 	give the path to the file.
 \"link\" type: 	give the title of the link, then the url.
+
+Streaming Info:
+Command to execute given as subsequent params.
+Executes the command on every new push since the last time 'recent' was used.
+Iden of the push is provided as the last parameter
+Ex.
+pushbullet monitor echo
 "
 }
 
@@ -211,6 +224,29 @@ get)
 			echo "$curl_result_body"
 		;;
 	esac
+;;
+
+stream)
+  which wssh > /dev/null || die "wssh not installed: https://github.com/progrium/wssh"
+	if [[ -z "${@:2}" ]]
+	then
+		die "No command to execute specified for new items"
+	fi
+	wsshCmd=$(which wssh)
+
+	$wsshCmd -n wss://stream.pushbullet.com/websocket/$API_KEY | while read -r line ; do
+		MSGTYPE=$(echo $line | jq -r '.type')
+		if [[ "$MSGTYPE" == "tickle" ]]
+		then
+			SUBTYPE=$(echo $line | jq -r '.subtype')
+			if [[ "$SUBTYPE" == "push" ]]
+			then
+				$0 recent | jq -c -M -r '.[].iden' | while read -r pushIden ; do
+					${@:2} $pushIden
+				done
+			fi
+		fi
+	done
 ;;
 
 *)
