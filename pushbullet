@@ -39,8 +39,6 @@ Type Parameters:
 (all parameters must be put inside quotes if more than one word)
 \"note\" type: 	give the title, then the note text.
 \"address\" type: give the address name, then the address or Google Maps query.
-\"list\" type: 	give the name of the list, then each of the list items, separated by spaces.
-\"file\" type: 	give the path to the file.
 \"link\" type: 	give the title of the link, then the url.
 
 Streaming Info:
@@ -127,22 +125,6 @@ push)
 	address)
 		address_result=$(dopush d "$dev_id" address name "$4" address "$5")
 		echo "$address_result"
-	;;
-
-	list)
-		#Prepare list by combining arguments
-		list_args=()
-		for i in "${@:5}"
-		do
-			list_args+=(items "$i")
-		done
-		list_result=$(dopush d "$dev_id" list title "$4" "${list_args[@]}")
-		echo "$list_result"
-	;;
-
-	file)
-		file_result=$(dopush F "$dev_id" file file "@$4")
-		echo "$file_result"
 	;;
 
 	link)
