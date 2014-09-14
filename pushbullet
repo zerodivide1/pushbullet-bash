@@ -25,6 +25,7 @@ list - Lists all devices in your PushBullet account. (does not require additiona
 recent - Retrieves recent pushes (optional type as argument; returns newest since last zero-arg invocation)
 push - Pushes data to a device. (the device name can simply be a unique part of the name that \"list\" returns)
 get - Retrieve a specific push (requires the iden of the push as parameter)
+delete - Delete a specific push (requires the iden of the push as a parameter)
 stream - Stream and execute given command for each new push
 
 Types: 
@@ -224,6 +225,27 @@ get)
 			echo "$curl_result_body"
 		;;
 	esac
+;;
+
+delete)
+	if [[ -z "$2" ]]
+	then
+		printUsage
+		exit
+	fi
+
+	curl_result=$( curl -qSfsw '\n%{http_code}' "$API_URL/pushes/$2" -u $API_KEY: -X DELETE ) 2>/dev/null
+	curl_result_code=$(echo "$curl_result" | tail -n1)
+	curl_result_body=$(echo "$curl_result" | head -n-1)
+	case "$curl_result_code" in
+		"200")
+			echo "OK:"
+		;;
+		*)
+			echo "Failed:"
+		;;
+	esac
+	echo "$curl_result_body"
 ;;
 
 stream)
